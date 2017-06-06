@@ -1,3 +1,11 @@
+# geany's default output
+s73331
+
+# don't know about license issues
+s73331.zip
+*.bin
+pubkey.pem
+
 # Prerequisites
 *.d
 
