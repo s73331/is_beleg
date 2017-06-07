@@ -2,6 +2,8 @@
 #include <string.h>
 
 #include <openssl/evp.h>
+#include <openssl/pem.h>
+#include <openssl/rsa.h>
 #include <openssl/sha.h>
 
 
@@ -88,6 +90,34 @@ int sha1_file(char *file_name)
 	return write_file(new_file_name, hash, 20);
 }
 
+/*
+ * Verifies the digest file with the key file against the signature file
+ *
+ * return:
+ * 1 Verification OK
+ * 0 Verification Failure
+ * negative value: error
+ */
+int rsa_verify_file(char *digest_file_name, char *key_file_name, char *signature_file_name)
+{
+	FILE *key = fopen(key_file_name, "rb");
+	if (key == NULL)
+		return -1;
+	RSA *rsa = RSA_new();
+	rsa = PEM_read_RSA_PUBKEY(key, &rsa, NULL, NULL);
+
+	unsigned char buf_signature[BUF_SIZE];
+	int bytes_signature = read_file(signature_file_name, buf_signature, sizeof(buf_signature));
+	if (bytes_signature == 0)
+		return -2;
+	unsigned char buf_digest[BUF_SIZE];
+	int bytes_digest = read_file(digest_file_name, buf_digest, sizeof(buf_digest));
+	if (bytes_digest == 0)
+		return -3;
+	int result = RSA_verify(NID_sha1, buf_digest, bytes_digest, buf_signature, bytes_signature, rsa);
+	return result;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -100,14 +130,33 @@ int main(int argc, char *argv[])
 	//read_file("s73331.c", buf, sizeof(buf));
 
 	if (sha1_file("s73331-cipher01.bin") == 0) {
+		error();
 		return 2;
 	}
 	if (sha1_file("s73331-cipher02.bin") == 0) {
+		error();
 		return 3;
 	}
 	if (sha1_file("s73331-cipher03.bin") == 0) {
+		error();
 		return 4;
 	}
+	int result1 = rsa_verify_file("s73331-cipher01.bin-sig.bin", "pubkey.pem", "s73331-sig.bin");
+	if (result1 < 0) {
+		error();
+		return 5;
+	}
+	int result2 = rsa_verify_file("s73331-cipher02.bin-sig.bin", "pubkey.pem", "s73331-sig.bin");
+	if (result2 < 0) {
+		error();
+		return 6;
+	}
+	int result3 = rsa_verify_file("s73331-cipher03.bin-sig.bin", "pubkey.pem", "s73331-sig.bin");
+	if (result3 < 0) {
+		error();
+		return 7;
+	}
+	printf("Results for signature check:\n1: %i\n2: %i\n3: %i\n", result1, result2, result3);
 
 	return 0;
 }
