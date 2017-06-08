@@ -32,7 +32,7 @@ int decrypt_aes_128_ecb(unsigned char *cipher, int cipher_bytes, unsigned char *
  * 	       0: success
  *     non-0: failure
  */
-int hash(unsigned char *message, int message_bytes, unsigned char *buf_hash, const EVP_MD *algorithm)
+int sha1(unsigned char *message, int message_bytes, unsigned char *buf_hash)
 {
 	// hash
 	EVP_MD_CTX ctx;
@@ -126,7 +126,7 @@ int rsa_verify_file(char *message_file_name, char *key_file_name, char *signatur
 		return -3;
 
 	unsigned char buf_digest[SHA_DIGEST_LENGTH];
-	if (hash(buf_message, bytes_message, buf_digest, EVP_sha1()) != 0)
+	if (sha1(buf_message, bytes_message, buf_digest) != 0)
 		return -4;
 
 	int result = RSA_verify(NID_sha1, buf_digest, sizeof(buf_digest), buf_signature, bytes_signature, rsa);
