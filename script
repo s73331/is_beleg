@@ -1,0 +1,20 @@
+#!/bin/bash
+echo === task 1 ===
+command="openssl dgst -sha1 -verify pubkey.pem -signature s73331-sig.bin s73331-cipher01.bin"
+echo $command
+$command
+command="openssl dgst -sha1 -verify pubkey.pem -signature s73331-sig.bin s73331-cipher02.bin"
+echo $command
+$command
+command="openssl dgst -sha1 -verify pubkey.pem -signature s73331-sig.bin s73331-cipher03.bin"
+echo $command
+$command
+
+echo === task 2 ===
+openssl enc -aes-128-ecb -d -in s73331-cipher02.bin -out script.pdf -K $(hexdump -v -e '/1 "%02X"' < s73331-key.bin)
+
+
+echo === task 3 ===
+command='openssl dgst -md4 -binary -out script-hash.bin script.pdf'
+echo $command
+$command

@@ -23,6 +23,13 @@ int decrypt_aes_128_ecb(unsigned char *cipher, int cipher_bytes, unsigned char *
 		return -1;
 	if (EVP_DecryptUpdate(&ctx, buf_plain, bytes_out, cipher, cipher_bytes) == 0)
 		return -2;
+	unsigned char buf_last[BUF_SIZE];
+	int bytes_last;
+	if (EVP_DecryptFinal(&ctx, buf_last, &bytes_last) == 0) {
+		return -3;
+	}
+	memcpy(buf_plain + *bytes_out, buf_last, bytes_last);
+	*bytes_out += bytes_last;
 	return 1;
 }
 
@@ -228,10 +235,12 @@ int main()
 
 	task2(right_cipher_file_name, key_file_name, buf_plain, &bytes_out);
 
-	if (bytes_out > 0)
+	if (bytes_out > 0) {
+		printf("\nWrote %i bytes to file plain.pdf\n", bytes_out);
 		write_file("plain.pdf", buf_plain, bytes_out);
-	else
+	} else {
 		return 2;
+	}
 
 	int result = task3(buf_plain, bytes_out, hash_output_file_name);
 	printf("\n");
